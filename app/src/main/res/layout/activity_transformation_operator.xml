@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/r01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="map"
+        android:textAllCaps="false"
+        android:onClick="r01"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/r02"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="flatMap"
+            android:textAllCaps="false"
+            android:onClick="r02"/>
+
+        <Button
+            android:id="@+id/r03"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="concatMap 体现不排序"
+            android:textAllCaps="false"
+            android:onClick="r03"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/r04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="concatMap 排序"
+        android:textAllCaps="false"
+        android:onClick="r04"/>
+
+    <Button
+        android:id="@+id/r05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="groupBy"
+        android:textAllCaps="false"
+        android:onClick="r05"/>
+
+    <Button
+        android:id="@+id/r06"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="buffer"
+        android:textAllCaps="false"
+        android:onClick="r06"/>
+</LinearLayout>

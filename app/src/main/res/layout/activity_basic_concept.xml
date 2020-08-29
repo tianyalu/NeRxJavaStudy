@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".BasicConceptActivity">
+
+    <Button
+        android:id="@+id/r01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="起点与终点"
+        android:onClick="r01"/>
+
+    <Button
+        android:id="@+id/r02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="上游与下游 --> 拆分调用"
+        android:onClick="r02"/>
+
+    <Button
+        android:id="@+id/r03"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="上游与下游 --> 链式调用"
+        android:onClick="r03"/>
+
+    <Button
+        android:id="@+id/r04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="流程整理"
+        android:onClick="r04"/>
+
+    <Button
+        android:id="@+id/r05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="流程整理2"
+        android:onClick="r05"/>
+
+    <Button
+        android:id="@+id/r06"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="切断下游"
+        android:onClick="r06"/>
+</LinearLayout>
