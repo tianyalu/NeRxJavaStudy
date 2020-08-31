@@ -117,7 +117,7 @@ public class BasicConceptActivity extends AppCompatActivity {
                 new Observer<Integer>() {
             @Override
             public void onSubscribe(Disposable d) {
-
+                Log.d(TAG, "下游 onSubscribe");
             }
 
             @Override
@@ -127,12 +127,12 @@ public class BasicConceptActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-
+                Log.d(TAG, "下游 onError");
             }
 
             @Override
             public void onComplete() {
-
+                Log.d(TAG, "下游 onComplete");
             }
         });
     }

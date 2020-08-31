@@ -1349,3 +1349,116 @@ public void r04(View view) {
 }
 ```
 
+### 2.7 线程切换
+
+#### 2.7.1 异步线程的区别
+
+> 1. `Schedulers.io()`：点`io`流操作、网络操作、文件流等耗时操作；
+> 2. `Schedulers.newThread()`：比较常规的，和平时`new Thread()`一样；
+> 3. `Schedulers.computation()`：专门为`CPU`大量计算使用的线程；
+> 4. `AndroidSchedulers.mainThread()`：专门为`Android main`线程量身定做的。
+
+* 给上游分配多次，只会在第一次切换，后面的配置会被忽略掉，不会再切换线程；
+* 如果不配置异步线程，上游发射一次，下游接收一次，表现为同步的；
+* 如果配置异步线程，表现为异步的（从打印结果看，发射完所有事件后才接收）。
+
+#### 2.7.2 下载图片示例
+
+传统的写法方式容易四分五裂，代码看上去比较凌乱；
+
+`RxJava`的写法是基于事件流的，有起点和终点，一个链条完成。
+
+```java
+public void r04(View view) {
+  //上游
+  Observable
+    .just(IMAGE_URL) //内部发射
+    //根据URL下载图片，得到bitmap
+    .map(new Function<String, Bitmap>() {
+      @Override
+      public Bitmap apply(String s) throws Exception {
+        try {
+          URL url = new URL(IMAGE_URL);
+          HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+          httpURLConnection.setConnectTimeout(5000);
+          int responseCode = httpURLConnection.getResponseCode();
+          if(HttpURLConnection.HTTP_OK == responseCode) {
+            Bitmap bitmap = BitmapFactory.decodeStream(httpURLConnection.getInputStream());
+            return bitmap;
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        return null;
+      }
+    })
+    //给图像的bitmap加水印
+    .map(new Function<Bitmap, Bitmap>() {
+      @Override
+      public Bitmap apply(Bitmap bitmap) throws Exception {
+        //给图片加水印
+        Paint paint = new Paint();
+        paint.setColor(Color.RED);
+        paint.setTextSize(32);
+        Bitmap bitmapWatermark = drawTextToBitmap(bitmap, "萌萌哒", paint, 60, 60);
+        return bitmapWatermark;
+      }
+    })
+    //记录日志
+    .map(new Function<Bitmap, Bitmap>() {
+      @Override
+      public Bitmap apply(Bitmap bitmap) throws Exception {
+        Log.d(TAG, "apply: 下载的bitmap是这个样子的 " + bitmap);
+        return bitmap;
+      }
+    })
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Observer<Bitmap>() {
+      @Override
+      public void onSubscribe(Disposable d) {
+        progressDialog = new ProgressDialog(ThreadSwitchActivity.this);
+        progressDialog.setMessage("加载中...");
+        progressDialog.show();
+      }
+
+      @Override
+      public void onNext(Bitmap bitmap) {
+        Log.d(TAG, "onNext: ");
+        if(ivImage != null) {
+          ivImage.setImageBitmap(bitmap);
+        }
+      }
+
+      @Override
+      public void onError(Throwable e) { //发生了异常
+        //加载默认图片
+        Log.d(TAG, "onError: ");
+      }
+
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "onComplete: ");
+        if(progressDialog != null) {
+          progressDialog.dismiss();
+        }
+      }
+    });
+}
+
+//图片上绘制文字
+private Bitmap drawTextToBitmap(Bitmap bitmap, String text, Paint paint, int paddingLeft, int paddingTop) {
+  Bitmap.Config bitmapConfig = bitmap.getConfig();
+  paint.setDither(true); //获取更清晰的图像采样
+  paint.setFilterBitmap(true); //过滤一些
+  if(bitmapConfig == null) {
+    bitmapConfig = Bitmap.Config.ARGB_8888;
+  }
+  bitmap = bitmap.copy(bitmapConfig, true);
+  Canvas canvas = new Canvas(bitmap);
+
+  canvas.drawText(text, paddingLeft, paddingTop, paint);
+  return bitmap;
+}
+```
+

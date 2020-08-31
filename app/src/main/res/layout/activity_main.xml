@@ -55,4 +55,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="异常处理型操作符示例" />
+
+    <Button
+        android:id="@+id/btn_goto_thread_switch_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="线程切换示例" />
 </LinearLayout>

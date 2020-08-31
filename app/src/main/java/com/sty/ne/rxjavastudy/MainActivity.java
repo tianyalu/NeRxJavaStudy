@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnGotoConditionOperatorActivity;
     private Button btnGotoMergeOperatorActivity;
     private Button btnGotoExceptionOperatorActivity;
+    private Button btnGotoThreadSwitchActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         btnGotoConditionOperatorActivity = findViewById(R.id.btn_goto_condition_operator_activity);
         btnGotoMergeOperatorActivity = findViewById(R.id.btn_goto_merge_operator_activity);
         btnGotoExceptionOperatorActivity = findViewById(R.id.btn_goto_exception_operator_activity);
+        btnGotoThreadSwitchActivity = findViewById(R.id.btn_goto_thread_switch_activity);
 
     }
 
@@ -85,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, ExceptionOperatorActivity.class));
+            }
+        });
+        btnGotoThreadSwitchActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ThreadSwitchActivity.class));
             }
         });
     }

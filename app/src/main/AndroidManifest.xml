@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sty.ne.rxjavastudy">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -37,6 +39,9 @@
         <activity
             android:name=".ExceptionOperatorActivity"
             android:label="异常处理型操作符"/>
+        <activity
+            android:name=".ThreadSwitchActivity"
+            android:label="线程切换"/>
 
     </application>
 
