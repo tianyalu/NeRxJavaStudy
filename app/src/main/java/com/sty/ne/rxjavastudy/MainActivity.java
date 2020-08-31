@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnGotoMergeOperatorActivity;
     private Button btnGotoExceptionOperatorActivity;
     private Button btnGotoThreadSwitchActivity;
+    private Button btnGotoFlowableActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         btnGotoMergeOperatorActivity = findViewById(R.id.btn_goto_merge_operator_activity);
         btnGotoExceptionOperatorActivity = findViewById(R.id.btn_goto_exception_operator_activity);
         btnGotoThreadSwitchActivity = findViewById(R.id.btn_goto_thread_switch_activity);
+        btnGotoFlowableActivity = findViewById(R.id.btn_goto_flowable_activity);
 
     }
 
@@ -93,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, ThreadSwitchActivity.class));
+            }
+        });
+        btnGotoFlowableActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, FlowableActivity.class));
             }
         });
     }

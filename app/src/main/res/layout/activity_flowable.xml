@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/r01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="背压测试"
+        android:textAllCaps="false"
+        android:onClick="r01"/>
+
+    <Button
+        android:id="@+id/r02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="背压测试-->手动点击处理r01发射的事件"
+        android:textAllCaps="false"
+        android:onClick="r02"/>
+
+    <Button
+        android:id="@+id/r03"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Flowable和Observable的fromArray的区别"
+        android:textAllCaps="false"
+        android:onClick="r03"/>
+
+    <Button
+        android:id="@+id/r04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Flowable和Observable的just区别"
+        android:textAllCaps="false"
+        android:onClick="r04"/>
+
+    <Button
+        android:id="@+id/r05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Flowable和Observable的map的区别"
+        android:textAllCaps="false"
+        android:onClick="r05"/>
+
+    <Button
+        android:id="@+id/r06"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Flowable和Observable的create的区别"
+        android:textAllCaps="false"
+        android:onClick="r06"/>
+</LinearLayout>

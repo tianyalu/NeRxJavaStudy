@@ -42,6 +42,9 @@
         <activity
             android:name=".ThreadSwitchActivity"
             android:label="线程切换"/>
+        <activity
+            android:name=".FlowableActivity"
+            android:label="背压模式"/>
 
     </application>
 
