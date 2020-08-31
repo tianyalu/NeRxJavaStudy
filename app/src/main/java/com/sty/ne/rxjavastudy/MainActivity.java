@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnGotoFilterOperatorActivity;
     private Button btnGotoConditionOperatorActivity;
     private Button btnGotoMergeOperatorActivity;
+    private Button btnGotoExceptionOperatorActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         btnGotoFilterOperatorActivity = findViewById(R.id.btn_goto_filter_operator_activity);
         btnGotoConditionOperatorActivity = findViewById(R.id.btn_goto_condition_operator_activity);
         btnGotoMergeOperatorActivity = findViewById(R.id.btn_goto_merge_operator_activity);
+        btnGotoExceptionOperatorActivity = findViewById(R.id.btn_goto_exception_operator_activity);
 
     }
 
@@ -77,6 +79,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, MergeOperatorActivity.class));
+            }
+        });
+        btnGotoExceptionOperatorActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ExceptionOperatorActivity.class));
             }
         });
     }

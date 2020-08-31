@@ -34,6 +34,9 @@
         <activity
             android:name=".MergeOperatorActivity"
             android:label="合并型操作符"/>
+        <activity
+            android:name=".ExceptionOperatorActivity"
+            android:label="异常处理型操作符"/>
 
     </application>
 
