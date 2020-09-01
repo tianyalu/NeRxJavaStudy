@@ -2010,3 +2010,98 @@ private void requestNetwork2() {
 }
 ```
 
+### 2.10 `Java`泛型
+
+如果我们不指定泛型类型，默认就是`Object`类型，是`Object`的扩展型。
+
+测试类的继承关系：
+
+```java
+StudentStub extends Student extends Person;
+Worker extends Person;
+```
+
+`MyTest`类：
+
+```java
+public class MyTest<T> {
+    private T t;
+
+    public void add(T t) {
+        this.t = t;
+    }
+
+    public T getT() {
+        return t;
+    }
+}
+```
+
+#### 2.10.1 上限和下限
+
+> 1. `? extends F`：上限，限制最高类为F，F和F的子类都可以使用，其父类不能使用；
+> 2. `? super F`：下限，限制最低类为F，F和F的父类都可以使用，其子类不能使用。
+
+```java
+    public void testGenericExtend() {
+        //上限
+        //show(new MyTest<Object>()); //Person的父类，会报错
+        show1(new MyTest<Person>());
+        show1(new MyTest<Worker>());
+        show1(new MyTest<Student>());
+
+        //下限
+        show2(new MyTest<Student>());
+        show2(new MyTest<Person>()); //父类
+        show2(new MyTest<Object>()); //父类
+        //show2(new MyTest<StudentStub>()); //Student的子类，会报错
+    }    
+
+		/**
+     * extends 上限(限制最高的类为Person) Person or Person的子类都可以使用(最高的类型只能是Person）
+     * @param test
+     * @param <T>
+     */
+    public static <T> void show1(MyTest<? extends Person> test) {
+
+    }
+
+    /**
+     * super 下限(限制最低的类为Student) Student or Student的父类都可以使用(最低的类型只能是Student）
+     * @param test
+     * @param <T>
+     */
+    public static <T> void show2(MyTest<? super Student> test) {
+
+    }
+```
+
+
+
+#### 2.10.3 读写模式
+
+> 1. `<? extends F>`：可读模式，不可写；
+> 2. `<? super F>`：可写模式，不完全可读。
+
+```java
+    public void testGenericExtend() {
+        //读写模式
+        //可读模式
+        MyTest<? extends Person> test1 = null;
+        test1.add(new Person()); //不可写
+        test1.add(new Student()); //不可写
+        test1.add(new Object()); //不可写
+        test1.add(new StudentStub()); //不可写
+        Person p = test1.getT();//可读
+
+        //可写模式 不完全可读
+        MyTest<? super Person> test2 = null;
+        test2.add(new Person()); //可写
+        test2.add(new Student()); //可写
+        test2.add(new Worker()); //可写
+        test2.add(new Object()); //父类不可写
+        Object o = test2.getT(); //不完全可读(需要强转)
+
+    }
+```
+
