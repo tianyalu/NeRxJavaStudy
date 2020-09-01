@@ -11,6 +11,22 @@
         android:text="请求网络(仅做演示，不能实际运行)"
         android:layout_marginTop="24dp"/>
 
+    <Button
+        android:id="@+id/btn_thread_test1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="普通流线程切换测试"
+        android:textAllCaps="false"
+        android:layout_marginTop="24dp"/>
+
+    <Button
+        android:id="@+id/btn_thread_test2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="doOnNext() 线程切换测试"
+        android:textAllCaps="false"
+        android:layout_marginTop="24dp"/>
+
     <TextView
         android:id="@+id/tv_register_ui"
         android:layout_width="match_parent"
@@ -22,5 +38,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"/>
+
+
 
 </LinearLayout>

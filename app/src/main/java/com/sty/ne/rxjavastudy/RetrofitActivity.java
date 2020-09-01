@@ -2,6 +2,9 @@ package com.sty.ne.rxjavastudy;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,6 +23,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -35,6 +39,7 @@ import io.reactivex.schedulers.Schedulers;
  * @UpdateDate: 2020/9/1 2:38 PM
  */
 public class RetrofitActivity extends AppCompatActivity {
+    private static final String TAG = RetrofitActivity.class.getSimpleName();
     private Button btnRequestNetwork;
     private TextView tvRegisterUi;
     private TextView tvLoginUi;
@@ -100,10 +105,10 @@ public class RetrofitActivity extends AppCompatActivity {
                 //1. 请求服务器注册操作 //TODO 第二步
                 //IRequestNetwork.loginAction
                 .registerAction(new RegisterRequest()) //Observable<RegisterResponse> 上游 被观察者 耗时操作
-                .subscribeOn(Schedulers.io())  //给上游分配异步线程
+                .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
                 .observeOn(AndroidSchedulers.mainThread()) //给下游切换主线程
                 //2. 注册完成后更新注册UI
-                .doOnNext(new Consumer<RegisterResponse>() { //可以在不订阅的情况下更新UI
+                .doOnNext(new Consumer<RegisterResponse>() { //每次在Observer的onNext方法调用之前被调用，但是调用顺序和其在流中的位置顺序一致
                     @Override
                     public void accept(RegisterResponse registerResponse) throws Exception {
                         //更新注册相关的所有UI //TODO 第三步
@@ -111,7 +116,7 @@ public class RetrofitActivity extends AppCompatActivity {
                     }
                 })
                 //3. 马上去登录服务器操作
-                .subscribeOn(Schedulers.io()) //分配异步线程
+                .observeOn(Schedulers.io()) //给下游切换子线程
                 .flatMap(new Function<RegisterResponse, ObservableSource<LoginResponse>>() {
                     @Override
                     public ObservableSource<LoginResponse> apply(RegisterResponse registerResponse) throws Exception {

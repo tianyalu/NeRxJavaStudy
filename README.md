@@ -1353,14 +1353,24 @@ public void r04(View view) {
 
 #### 2.7.1 异步线程的区别
 
-> 1. `Schedulers.io()`：点`io`流操作、网络操作、文件流等耗时操作；
-> 2. `Schedulers.newThread()`：比较常规的，和平时`new Thread()`一样；
-> 3. `Schedulers.computation()`：专门为`CPU`大量计算使用的线程；
-> 4. `AndroidSchedulers.mainThread()`：专门为`Android main`线程量身定做的。
+**`Scheduler`的类型：**
+
+> 1. `Schedulers.io()`：由无限制的线程池支持，主要用于`io`流操作、网络操作、文件流、数据库交互等耗时操作；
+> 2. `Schedulers.newThread()`：为每个安排的工作任务创建一个新的线程，不会重复使用，调度昂贵；
+> 3. `Schedulers.computation()`：由有限线程池支持，其大小可达处理器的数量；用于计算或`CPU`密集型工作，例如调整图像大小，处理大型数据集等。
+> 4. `Schedulers.from(Executor executor)`：创建并返回由指定执行程序支持的自定义调度程序。如果要限制线程池中同时线程的数量，可使用`Scheduler.from(Executors.newThreadPool(n))`，这保证了如果在所有线程都被占用时，调度任务将排队；池中的线程将一直存在，知道它被明确关闭；
+> 5. `AndroidSchedulers.mainThread()`：专门为`Android main`线程量身定做的。
+
+**线程切换方式：**
+
+> * `observeOn() `：指定下游运算所在线程（可以多次使用无限切换）;
+> * `subscribeOn()`：指定源`Observable`工作（发射事件）执行的线程，一直推送延续到`Observer`（中途可以用`observerOn`切换线程）；它可以在流中的任何位置，如果有多个`subscribeOn`存在，只有第一个生效。
 
 * 给上游分配多次，只会在第一次切换，后面的配置会被忽略掉，不会再切换线程；
 * 如果不配置异步线程，上游发射一次，下游接收一次，表现为同步的；
 * 如果配置异步线程，表现为异步的（从打印结果看，发射完所有事件后才接收）。
+
+参考：[RxJava线程切换之subscribeOn和observeOn详解](https://www.jianshu.com/p/a3f2c3ee00a3)
 
 #### 2.7.2 下载图片示例
 
@@ -1459,6 +1469,154 @@ private Bitmap drawTextToBitmap(Bitmap bitmap, String text, Paint paint, int pad
 
   canvas.drawText(text, paddingLeft, paddingTop, paint);
   return bitmap;
+}
+```
+
+#### 2.7.3 注册登录流程示例
+
+本例子实现注册请求网络、修改`UI`，然后登录请求网络，修改`UI`，即多次主线程和子线程切换的事件流，
+
+例子1：
+
+```java
+private void normalFlowThreadTest() {
+  progressDialog = new ProgressDialog(this);
+  progressDialog.setMessage("注册中...");
+  Observable.just("注册中...")
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        Log.d(TAG, "map1 " + s + " thread: " + Thread.currentThread().getName());
+        SystemClock.sleep(2000);
+        return "注册成功";
+      }
+    })
+    .observeOn(AndroidSchedulers.mainThread()) //指定下面的call在主线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        tvRegisterUi.setText(s);
+        progressDialog.setMessage("登录中...");
+        Log.d(TAG, "map2 " + s + " thread: " + Thread.currentThread().getName());
+        return "登录中...";
+      }
+    })
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        Log.d(TAG, "map3 " + s  + " thread: " + Thread.currentThread().getName());
+        SystemClock.sleep(2000);
+        return "登录成功";
+      }
+    })
+    .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
+    .observeOn(AndroidSchedulers.mainThread()) //指定下游运算所在线程（可以多次使用无限切换）
+    .subscribe(new Observer<String>() {
+      @Override
+      public void onSubscribe(Disposable d) {
+        Log.d(TAG, "onSubscribe thread: " + Thread.currentThread().getName());
+        progressDialog.show();
+      }
+
+      @Override
+      public void onNext(String s) {
+        tvLoginUi.setText(s);
+        Log.d(TAG, "onNext " + s + " thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        Log.d(TAG, "onError thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "onComplete thread: " + Thread.currentThread().getName());
+        if(progressDialog != null) {
+          progressDialog.dismiss();
+        }
+        // D/RetrofitActivity: onSubscribe thread: main
+        // D/RetrofitActivity: map1 注册中... thread: RxCachedThreadScheduler-2
+        // D/RetrofitActivity: map2 注册成功 thread: main
+        // D/RetrofitActivity: map3 登录中... thread: RxCachedThreadScheduler-3
+        // D/RetrofitActivity: onNext 登录成功 thread: main
+        // D/RetrofitActivity: onComplete thread: main
+      }
+    });
+}
+```
+
+例子2：
+
+```java
+private void doOnNextThreadTest() {
+  progressDialog = new ProgressDialog(this);
+  progressDialog.setMessage("注册中...");
+  Observable.just("注册中...")
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        Log.d(TAG, "map1 " + s + " thread: " + Thread.currentThread().getName());
+        SystemClock.sleep(2000);
+        return "注册成功";
+      }
+    })
+    .observeOn(AndroidSchedulers.mainThread())
+    .doOnNext(new Consumer<String>() { //每次在Observer的onNext方法调用之前被调用，但是调用顺序和其在流中的位置顺序一致
+      @Override
+      public void accept(String s) throws Exception {
+        tvRegisterUi.setText(s);
+        progressDialog.setMessage("登录中...");
+        Log.d(TAG, "doOnNext " + s + " thread: " + Thread.currentThread().getName());
+      }
+    })
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        String msg = "登录中...";
+        Log.d(TAG, "map3 " + msg  + " thread: " + Thread.currentThread().getName());
+        SystemClock.sleep(2000);
+        return "登录成功";
+      }
+    })
+    .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
+    .observeOn(AndroidSchedulers.mainThread()) //指定下游运算所在线程（可以多次使用无限切换）
+    .subscribe(new Observer<String>() {
+      @Override
+      public void onSubscribe(Disposable d) {
+        Log.d(TAG, "onSubscribe thread: " + Thread.currentThread().getName());
+        progressDialog.show();
+      }
+
+      @Override
+      public void onNext(String s) {
+        tvLoginUi.setText(s);
+        Log.d(TAG, "onNext " + s + " thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        Log.d(TAG, "onError thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "onComplete thread: " + Thread.currentThread().getName());
+        if(progressDialog != null) {
+          progressDialog.dismiss();
+        }
+        // D/RetrofitActivity: onSubscribe thread: main
+        // D/RetrofitActivity: map1 注册中... thread: RxCachedThreadScheduler-2
+        // D/RetrofitActivity: doOnNext 注册成功 thread: main
+        // D/RetrofitActivity: map3 登录中... thread: RxCachedThreadScheduler-3
+        // D/RetrofitActivity: onNext 登录成功 thread: main
+        // D/RetrofitActivity: onComplete thread: main
+      }
+    });
 }
 ```
 
@@ -1773,7 +1931,7 @@ public void r06(View view) {
 
 ![image](https://github.com/tianyalu/NeRxJavaStudy/raw/master/show/rxjava_retrofit_request_network_process.png)
 
-本例子实现了按顺序执行两次网络请求以及其之后更新`UI`的操作，一行代码写完需求流程说明：
+本例子实现了按顺序执行两次网络请求以及其之后更新`UI`的操作(可参考2.7.3)，一行代码写完需求流程说明：
 
 > 1. 请求服务器，执行注册操作（耗时 --> 切换异步线程）；
 > 2. 更新注册后的所有注册相关UI（main --> 切换主线程）；
@@ -1789,6 +1947,8 @@ public void r06(View view) {
 > 5. 订阅的观察者执行下游的`onNext`方法，更新所有登录后的`UI`
 > 6. `progressDialog.dismiss()`
 
+**`doOnNext()`**是观察者被通知之前(也就是回调之前)会调用的方法，说白了就是最终回调之前的前一个回调方法，这个方法一般做的事件类似于观察者做的事情，只是自己不是最终的回调者（观察者即最终回调者）。
+
 ```java
 private void requestNetwork2() {
   progressDialog = new ProgressDialog(this);
@@ -1798,10 +1958,10 @@ private void requestNetwork2() {
     //1. 请求服务器注册操作 //TODO 第二步
     //IRequestNetwork.loginAction
     .registerAction(new RegisterRequest()) //Observable<RegisterResponse> 上游 被观察者 耗时操作
-    .subscribeOn(Schedulers.io())  //给上游分配异步线程
+    .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
     .observeOn(AndroidSchedulers.mainThread()) //给下游切换主线程
     //2. 注册完成后更新注册UI
-    .doOnNext(new Consumer<RegisterResponse>() { //可以在不订阅的情况下更新UI
+    .doOnNext(new Consumer<RegisterResponse>() { //每次在Observer的onNext方法调用之前被调用，但是调用顺序和其在流中的位置顺序一致
       @Override
       public void accept(RegisterResponse registerResponse) throws Exception {
         //更新注册相关的所有UI //TODO 第三步
@@ -1809,7 +1969,7 @@ private void requestNetwork2() {
       }
     })
     //3. 马上去登录服务器操作
-    .subscribeOn(Schedulers.io()) //分配异步线程
+    .observeOn(Schedulers.io()) //给下游切换子线程
     .flatMap(new Function<RegisterResponse, ObservableSource<LoginResponse>>() {
       @Override
       public ObservableSource<LoginResponse> apply(RegisterResponse registerResponse) throws Exception {

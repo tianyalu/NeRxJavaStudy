@@ -40,6 +40,34 @@
         android:textAllCaps="false"
         android:onClick="r04"/>
 
+    <Button
+        android:id="@+id/btn_thread_test1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="普通流线程切换测试"
+        android:textAllCaps="false"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/btn_thread_test2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="doOnNext() 线程切换测试"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_register_ui"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_login_ui"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
     <ImageView
         android:id="@+id/iv_image"
         android:layout_width="wrap_content"

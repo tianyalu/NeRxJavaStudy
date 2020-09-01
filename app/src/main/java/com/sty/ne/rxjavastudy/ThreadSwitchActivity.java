@@ -9,9 +9,12 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -43,6 +46,10 @@ public class ThreadSwitchActivity extends AppCompatActivity {
     private static final String TAG = ThreadSwitchActivity.class.getSimpleName();
     private final String IMAGE_URL = "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1598875103852&di=857f506bf750627f082e0676048c8146&imgtype=0&src=http%3A%2F%2Fp0.ssl.cdn.btime.com%2Ft01a6c57604f319e2ee.jpg%3Fsize%3D400x400";
     private ImageView ivImage;
+    private Button btnThreadTest1;
+    private Button btnThreadTest2;
+    private TextView tvRegisterUi;
+    private TextView tvLoginUi;
     private ProgressDialog progressDialog;
 
     @Override
@@ -51,11 +58,30 @@ public class ThreadSwitchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_thread_switch);
         Log.d(TAG, "onCreate: " + Thread.currentThread().getName());
         initView();
+        addListeners();
     }
 
     private void initView() {
         ivImage = findViewById(R.id.iv_image);
+        btnThreadTest1 = findViewById(R.id.btn_thread_test1);
+        btnThreadTest2 = findViewById(R.id.btn_thread_test2);
+        tvRegisterUi = findViewById(R.id.tv_register_ui);
+        tvLoginUi = findViewById(R.id.tv_login_ui);
+    }
 
+    private void addListeners() {
+        btnThreadTest1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                normalFlowThreadTest();
+            }
+        });
+        btnThreadTest2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doOnNextThreadTest();
+            }
+        });
     }
 
     /**
@@ -273,5 +299,141 @@ public class ThreadSwitchActivity extends AppCompatActivity {
 
         canvas.drawText(text, paddingLeft, paddingTop, paint);
         return bitmap;
+    }
+
+    private void normalFlowThreadTest() {
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("注册中...");
+        Observable.just("注册中...")
+                .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        Log.d(TAG, "map1 " + s + " thread: " + Thread.currentThread().getName());
+                        SystemClock.sleep(2000);
+                        return "注册成功";
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread()) //指定下面的call在主线程执行
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        tvRegisterUi.setText(s);
+                        progressDialog.setMessage("登录中...");
+                        Log.d(TAG, "map2 " + s + " thread: " + Thread.currentThread().getName());
+                        return "登录中...";
+                    }
+                })
+                .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        Log.d(TAG, "map3 " + s  + " thread: " + Thread.currentThread().getName());
+                        SystemClock.sleep(2000);
+                        return "登录成功";
+                    }
+                })
+                .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
+                .observeOn(AndroidSchedulers.mainThread()) //指定下游运算所在线程（可以多次使用无限切换）
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "onSubscribe thread: " + Thread.currentThread().getName());
+                        progressDialog.show();
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        tvLoginUi.setText(s);
+                        Log.d(TAG, "onNext " + s + " thread: " + Thread.currentThread().getName());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "onError thread: " + Thread.currentThread().getName());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "onComplete thread: " + Thread.currentThread().getName());
+                        if(progressDialog != null) {
+                            progressDialog.dismiss();
+                        }
+                        // D/RetrofitActivity: onSubscribe thread: main
+                        // D/RetrofitActivity: map1 注册中... thread: RxCachedThreadScheduler-2
+                        // D/RetrofitActivity: map2 注册成功 thread: main
+                        // D/RetrofitActivity: map3 登录中... thread: RxCachedThreadScheduler-3
+                        // D/RetrofitActivity: onNext 登录成功 thread: main
+                        // D/RetrofitActivity: onComplete thread: main
+                    }
+                });
+    }
+
+    private void doOnNextThreadTest() {
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("注册中...");
+        Observable.just("注册中...")
+                .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        Log.d(TAG, "map1 " + s + " thread: " + Thread.currentThread().getName());
+                        SystemClock.sleep(2000);
+                        return "注册成功";
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<String>() { //每次在Observer的onNext方法调用之前被调用，但是调用顺序和其在流中的位置顺序一致
+                    @Override
+                    public void accept(String s) throws Exception {
+                        tvRegisterUi.setText(s);
+                        progressDialog.setMessage("登录中...");
+                        Log.d(TAG, "doOnNext " + s + " thread: " + Thread.currentThread().getName());
+                    }
+                })
+                .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        String msg = "登录中...";
+                        Log.d(TAG, "map3 " + msg  + " thread: " + Thread.currentThread().getName());
+                        SystemClock.sleep(2000);
+                        return "登录成功";
+                    }
+                })
+                .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
+                .observeOn(AndroidSchedulers.mainThread()) //指定下游运算所在线程（可以多次使用无限切换）
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "onSubscribe thread: " + Thread.currentThread().getName());
+                        progressDialog.show();
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        tvLoginUi.setText(s);
+                        Log.d(TAG, "onNext " + s + " thread: " + Thread.currentThread().getName());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "onError thread: " + Thread.currentThread().getName());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "onComplete thread: " + Thread.currentThread().getName());
+                        if(progressDialog != null) {
+                            progressDialog.dismiss();
+                        }
+                        // D/RetrofitActivity: onSubscribe thread: main
+                        // D/RetrofitActivity: map1 注册中... thread: RxCachedThreadScheduler-2
+                        // D/RetrofitActivity: doOnNext 注册成功 thread: main
+                        // D/RetrofitActivity: map3 登录中... thread: RxCachedThreadScheduler-3
+                        // D/RetrofitActivity: onNext 登录成功 thread: main
+                        // D/RetrofitActivity: onComplete thread: main
+                    }
+                });
     }
 }
