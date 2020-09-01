@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnGotoExceptionOperatorActivity;
     private Button btnGotoThreadSwitchActivity;
     private Button btnGotoFlowableActivity;
+    private Button btnGotoRetrofitActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         btnGotoExceptionOperatorActivity = findViewById(R.id.btn_goto_exception_operator_activity);
         btnGotoThreadSwitchActivity = findViewById(R.id.btn_goto_thread_switch_activity);
         btnGotoFlowableActivity = findViewById(R.id.btn_goto_flowable_activity);
+        btnGotoRetrofitActivity = findViewById(R.id.btn_goto_retrofit_activity);
 
     }
 
@@ -101,6 +103,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, FlowableActivity.class));
+            }
+        });
+        btnGotoRetrofitActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, RetrofitActivity.class));
             }
         });
     }

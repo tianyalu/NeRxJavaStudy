@@ -11,62 +11,70 @@
         android:id="@+id/btn_goto_basic_concept_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="基础概念" />
 
     <Button
         android:id="@+id/btn_goto_creation_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="创建型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_transformation_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="变换型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_filter_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="过滤型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_condition_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="条件型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_merge_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="合并型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_exception_operator_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="异常处理型操作符示例" />
 
     <Button
         android:id="@+id/btn_goto_thread_switch_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="线程切换示例" />
 
     <Button
         android:id="@+id/btn_goto_flowable_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:text="背压模式示例" />
+
+    <Button
+        android:id="@+id/btn_goto_retrofit_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAllCaps="false"
+        android:text="retrofit请求网络" />
 </LinearLayout>

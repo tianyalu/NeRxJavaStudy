@@ -1767,3 +1767,86 @@ public void r06(View view) {
 }
 ```
 
+### 2.9 `RxJava`配合`Retrofit`使用
+
+`RxJava`配合`Retrofit`请求网络流程如下图所示：
+
+![image](https://github.com/tianyalu/NeRxJavaStudy/raw/master/show/rxjava_retrofit_request_network_process.png)
+
+本例子实现了按顺序执行两次网络请求以及其之后更新`UI`的操作，一行代码写完需求流程说明：
+
+> 1. 请求服务器，执行注册操作（耗时 --> 切换异步线程）；
+> 2. 更新注册后的所有注册相关UI（main --> 切换主线程）；
+> 3. 请求服务器，执行登录操作（耗时 --> 切换异步线程）；
+> 4. 更新登录后的所有登录相关UI（main --> 切换主线程）。
+
+从代码执行流程看的事件流：
+
+> 1. `onSubscribe` --> `progressDialog.show()`
+> 2. `registerAction(new RegisterRequest())`
+> 3. `doOnNext`更新注册后的所有`UI`
+> 4. `flatMap`执行登录的耗时操作
+> 5. 订阅的观察者执行下游的`onNext`方法，更新所有登录后的`UI`
+> 6. `progressDialog.dismiss()`
+
+```java
+private void requestNetwork2() {
+  progressDialog = new ProgressDialog(this);
+  progressDialog.setMessage("正在请求中...");
+
+  MyRetrofit.createRetrofit().create(IRequestNetwork.class)
+    //1. 请求服务器注册操作 //TODO 第二步
+    //IRequestNetwork.loginAction
+    .registerAction(new RegisterRequest()) //Observable<RegisterResponse> 上游 被观察者 耗时操作
+    .subscribeOn(Schedulers.io())  //给上游分配异步线程
+    .observeOn(AndroidSchedulers.mainThread()) //给下游切换主线程
+    //2. 注册完成后更新注册UI
+    .doOnNext(new Consumer<RegisterResponse>() { //可以在不订阅的情况下更新UI
+      @Override
+      public void accept(RegisterResponse registerResponse) throws Exception {
+        //更新注册相关的所有UI //TODO 第三步
+        tvRegisterUi.setText("注册成功");
+      }
+    })
+    //3. 马上去登录服务器操作
+    .subscribeOn(Schedulers.io()) //分配异步线程
+    .flatMap(new Function<RegisterResponse, ObservableSource<LoginResponse>>() {
+      @Override
+      public ObservableSource<LoginResponse> apply(RegisterResponse registerResponse) throws Exception {
+        //这里还可以拿到注册后的响应对象RegisterResponse
+        //执行登录服务器操作 //TODO 第四步
+        Observable<LoginResponse> observable = MyRetrofit.createRetrofit().create(IRequestNetwork.class)
+          .loginAction(new LoginRequest());
+        return observable;
+      }
+    })
+    //4. 登录完成之后更新登录的UI
+    .observeOn(AndroidSchedulers.mainThread()) //给下游切换主线程
+    .subscribe(new Observer<LoginResponse>() {
+      @Override
+      public void onSubscribe(Disposable d) {
+        //TODO 第一步
+        progressDialog.show();
+      }
+
+      @Override
+      public void onNext(LoginResponse loginResponse) {
+        //更新登录相关的所有UI //TODO 第五步
+        tvLoginUi.setText("登录成功");
+      }
+
+      @Override
+      public void onError(Throwable e) {
+      }
+
+      @Override
+      public void onComplete() {
+        //TODO 第六步
+        if(progressDialog != null) {
+          progressDialog.dismiss();
+        }
+      }
+    });
+}
+```
+

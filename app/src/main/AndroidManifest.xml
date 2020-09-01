@@ -45,6 +45,9 @@
         <activity
             android:name=".FlowableActivity"
             android:label="背压模式"/>
+        <activity
+            android:name=".RetrofitActivity"
+            android:label="retrofit请求网络"/>
 
     </application>
 
