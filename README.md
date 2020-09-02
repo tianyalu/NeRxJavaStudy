@@ -2012,7 +2012,9 @@ private void requestNetwork2() {
 
 ### 2.10 `Java`泛型
 
-如果我们不指定泛型类型，默认就是`Object`类型，是`Object`的扩展型。
+泛型：即“参数化类型”，就是将类型由原来的具体的类型参数化；如果我们不指定泛型类型，默认就是`Object`类型，是`Object`的扩展型。
+
+泛型只在编译阶段有效，在编译之后程序会采取去泛型化的措施。
 
 测试类的继承关系：
 
@@ -2024,18 +2026,27 @@ Worker extends Person;
 `MyTest`类：
 
 ```java
+//此处T可以随便写为任意标识，常见的如T、E、K、V等形式的参数常用于表示泛型
+//在实例化泛型类时，必须指定T的具体类型
 public class MyTest<T> {
+    //t这个成员变量的类型为T,T的类型由外部指定
     private T t;
+
+    public MyTest(T t) { //泛型构造方法形参t的类型也为T，T的类型由外部指定
+        this.t = t;
+    }
 
     public void add(T t) {
         this.t = t;
     }
 
-    public T getT() {
+    public T getT() { //泛型方法getT的返回值类型为T，T的类型由外部指定
         return t;
     }
 }
 ```
+
+参考：[java 泛型详解-绝对是对泛型方法讲解最详细的，没有之一](https://www.cnblogs.com/icebutterfly/p/9012858.html)
 
 #### 2.10.1 上限和下限
 
@@ -2057,10 +2068,12 @@ public class MyTest<T> {
         //show2(new MyTest<StudentStub>()); //Student的子类，会报错
     }    
 
-		/**
+    /**
      * extends 上限(限制最高的类为Person) Person or Person的子类都可以使用(最高的类型只能是Person）
      * @param test
-     * @param <T>
+     * @param <T>：<T>非常重要，可以理解为声明此方法为泛型方法;
+     *   					<T>表明该方法将使用泛型类型T，此后才可以在方法中使用泛型类型T
+     *             只有声明了<T>的方法才是泛型方法，泛型类中使用了泛型的成员方法并不是泛型方法
      */
     public static <T> void show1(MyTest<? extends Person> test) {
 
@@ -2104,4 +2117,10 @@ public class MyTest<T> {
 
     }
 ```
+
+#### 2.10.4 区分读写模式和上限下限
+
+在方法定义/声明的参数中使用时，一定是上限和下限，如`show2(MyTest<? Super Student> myTest)`；
+
+在真正使用到泛型时/真正方法调用时，就是读写模式，如`test2.add(new Student())`。
 

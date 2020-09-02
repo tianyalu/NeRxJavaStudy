@@ -84,7 +84,8 @@ public class TestClient<T> {
     /**
      * extends 上限(限制最高的类为Person) Person or Person的子类都可以使用(最高的类型只能是Person）
      * @param test
-     * @param <T>
+     * @param <T>：<T>非常重要，可以理解为声明此方法为泛型方法;<T>表明该方法将使用泛型类型T，此后才可以在方法中使用泛型类型T
+     *             只有声明了<T>的方法才是泛型方法，泛型类中使用了泛型的成员方法并不是泛型方法
      */
     public static <T> void show1(MyTest<? extends Person> test) {
 
