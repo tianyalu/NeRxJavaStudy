@@ -1620,6 +1620,97 @@ private void doOnNextThreadTest() {
 }
 ```
 
+#### 2.7.4 单纯的线程切换全面测试
+
+```java
+private void subscribeOnThreadTest() {
+  Observable
+    .create(new ObservableOnSubscribe<String>() {
+      @Override
+      public void subscribe(ObservableEmitter<String> e) throws Exception {
+        Log.d(TAG, "subscribe thread: " + Thread.currentThread().getName());
+        e.onNext("注册中...");
+        e.onComplete();
+      }
+    })
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        Log.d(TAG, "map1 " + s + " thread: " + Thread.currentThread().getName());
+        return "注册成功";
+      }
+    })
+    .observeOn(AndroidSchedulers.mainThread())
+    .doOnNext(new Consumer<String>() { //每次在Observer的onNext方法调用之前被调用，但是调用顺序和其在流中的位置顺序一致
+      @Override
+      public void accept(String s) throws Exception {
+        Log.d(TAG, "doOnNext " + s + " thread: " + Thread.currentThread().getName());
+      }
+    })
+    .observeOn(Schedulers.io()) //指定下面的call在子线程执行
+    .map(new Function<String, String>() {
+      @Override
+      public String apply(String s) throws Exception {
+        String msg = "登录中...";
+        Log.d(TAG, "map3 " + msg  + " thread: " + Thread.currentThread().getName());
+        return "登录成功";
+      }
+    })
+    .subscribeOn(Schedulers.io())  //指定源Observable工作（发射事件）执行的线程，一直推送延续到Observer（中途可以用observerOn切换线程），它可以在流中的任何位置，如果有多个subscribeOn,只有第一个生效
+    .observeOn(AndroidSchedulers.mainThread()) //指定下游运算所在线程（可以多次使用无限切换）
+    .subscribe(new Observer<String>() {
+      @Override
+      public void onSubscribe(Disposable d) {
+        Log.d(TAG, "onSubscribe thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onNext(String s) {
+        Log.d(TAG, "onNext " + s + " thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        Log.d(TAG, "onError thread: " + Thread.currentThread().getName());
+      }
+
+      @Override
+      public void onComplete() {
+        Log.d(TAG, "onComplete thread: " + Thread.currentThread().getName());
+        // TODO 仅指定subscribeOn(Schedulers.io())时
+        // D/ThreadSwitchActivity: onSubscribe thread: main
+        // D/ThreadSwitchActivity: subscribe thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: map1 注册中... thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: doOnNext 注册成功 thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: map3 登录中... thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: onNext 登录成功 thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: onComplete thread: RxCachedThreadScheduler-1
+
+        // TODO 加上指定最下面的observeOn(AndroidSchedulers.mainThread())时
+        // D/ThreadSwitchActivity: onSubscribe thread: main
+        // D/ThreadSwitchActivity: subscribe thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: map1 注册中... thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: doOnNext 注册成功 thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: map3 登录中... thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: onNext 登录成功 thread: main
+        // D/ThreadSwitchActivity: onComplete thread: main
+
+        // TODO 加上所有的线程切换代码时
+        // D/ThreadSwitchActivity: onSubscribe thread: main
+        // D/ThreadSwitchActivity: subscribe thread: RxCachedThreadScheduler-1
+        // D/ThreadSwitchActivity: map1 注册中... thread: RxCachedThreadScheduler-2
+        // D/ThreadSwitchActivity: doOnNext 注册成功 thread: main
+        // D/ThreadSwitchActivity: map3 登录中... thread: RxCachedThreadScheduler-3
+        // D/ThreadSwitchActivity: onNext 登录成功 thread: main
+        // D/ThreadSwitchActivity: onComplete thread: main
+      }
+    });
+}
+```
+
+
+
 ### 2.8 背压模式
 
  **背压模式的由来:**
